@@ -2,7 +2,7 @@
 
 Displays output from the 'fortune' program in the background when there are no editors open.
 
-![Screenshot](screenshot.png)
+![Screenshot](https://github.com/BinaryMuse/atom-fortune-background-tips/raw/master/screenshot.png)
 
 ## Installation
 
