@@ -4,7 +4,7 @@
   "version": "1.0.0",
   "private": true,
   "description": "Displays output from the 'fortune' program in the background when there are no editors open.",
-  "repository": "https://github.com/BinaryMuse/fortune-background-tips",
+  "repository": "https://github.com/BinaryMuse/atom-fortune-background-tips",
   "license": "MIT",
   "engines": {
     "atom": ">0.42.0"
