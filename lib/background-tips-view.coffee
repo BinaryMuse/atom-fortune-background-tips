@@ -1,6 +1,4 @@
-_ = require 'underscore-plus'
-{CompositeDisposable} = require 'atom'
-Tips = require './tips'
+{BufferedProcess, CompositeDisposable} = require 'atom'
 
 Template = """
   <ul class="centered background-message">
@@ -14,7 +12,7 @@ class BackgroundTipsElement extends HTMLElement
   DisplayDuration: 10000
   FadeDuration: 300
 
-  createdCallback: ->
+  createdCallback: =>
     @index = -1
 
     @disposables = new CompositeDisposable
@@ -24,25 +22,25 @@ class BackgroundTipsElement extends HTMLElement
 
     @startTimeout = setTimeout((=> @start()), @StartDelay)
 
-  attachedCallback: ->
+  attachedCallback: =>
     @innerHTML = Template
     @message = @querySelector('.message')
 
-  destroy: ->
+  destroy: =>
     @stop()
     @disposables.dispose()
     @destroyed = true
 
-  attach: ->
+  attach: =>
     paneView = atom.views.getView(atom.workspace.getActivePane())
     top = paneView.querySelector('.item-views')?.offsetTop ? 0
     @style.top = top + 'px'
     paneView.appendChild(this)
 
-  detach: ->
+  detach: =>
     @remove()
 
-  updateVisibility: ->
+  updateVisibility: =>
     if @shouldBeAttached()
       @start()
     else
@@ -51,61 +49,46 @@ class BackgroundTipsElement extends HTMLElement
   shouldBeAttached: ->
     atom.workspace.getPanes().length is 1 and not atom.workspace.getActivePaneItem()?
 
-  start: ->
+  start: =>
     return if not @shouldBeAttached() or @interval?
-    @renderTips()
-    @randomizeIndex()
     @attach()
     @showNextTip()
     @interval = setInterval((=> @showNextTip()), @DisplayDuration)
 
-  stop: ->
+  stop: =>
     @remove()
     clearInterval(@interval) if @interval?
     clearTimeout(@startTimeout)
     clearTimeout(@nextTipTimeout)
     @interval = null
 
-  randomizeIndex: ->
-    len = Tips.length
-    @index = Math.round(Math.random() * len) % len
+  showNextTip: =>
+    @getFortune (fortune) =>
+      @message.classList.remove('fade-in')
+      @nextTipTimeout = setTimeout =>
+        @message.innerHTML = fortune.replace(/\n/g, '<br>')
+        @message.classList.add('fade-in')
+      , @FadeDuration
 
-  showNextTip: ->
-    @index = ++@index % Tips.length
-    @message.classList.remove('fade-in')
-    @nextTipTimeout = setTimeout =>
-      @message.innerHTML = Tips[@index]
-      @message.classList.add('fade-in')
-    , @FadeDuration
-
-  renderTips: ->
-    return if @tipsRendered
-    for tip, i in Tips
-      Tips[i] = @renderTip(tip)
-    @tipsRendered = true
-
-  renderTip: (str) ->
-    str = str.replace /\{(.+)\}/g, (match, command) =>
-      scopeAndCommand = command.split('>')
-      [scope, command] = scopeAndCommand if scopeAndCommand.length > 1
-      bindings = atom.keymaps.findKeyBindings(command: command.trim())
-
-      if scope
-        for binding in bindings
-          break if binding.selector is scope
+  getFortune: (cb) ->
+    output = ''
+    errorOutput = ''
+    fortuneCommand = atom.config.get('fortune-background-tips.fortuneCommand').split(' ')
+    command = fortuneCommand[0]
+    args = fortuneCommand[1..]
+    stdout = (text) -> output += text
+    stderr = (text) -> errorOutput += text
+    exit = (code) ->
+      if code is 0
+        cb output
       else
-        binding = @getKeyBindingForCurrentPlatform(bindings)
-
-      if binding?.keystrokes
-        keystrokeLabel = _.humanizeKeystroke(binding.keystrokes).replace(/\s+/g, '&nbsp;')
-        "<span class=\"keystroke\">#{keystrokeLabel}</span>"
+        cb "Couldn't get forutne; #{command} exited with code: #{code}<br>#{errorOutput}"
+    proc = new BufferedProcess({command, args, stdout, stderr, exit})
+    proc.onWillThrowError ({error, handle}) ->
+      handle()
+      if error.errno = 'ENOENT'
+        cb "Command '#{command}' not found; please check your forutne-background-tips settings"
       else
-        command
-    str
+        cb "Couldn't spawn #{command}: #{error.message}"
 
-  getKeyBindingForCurrentPlatform: (bindings) ->
-    return unless bindings?.length
-    return binding for binding in bindings when binding.selector.indexOf(process.platform) isnt -1
-    return bindings[0]
-
-module.exports = document.registerElement 'background-tips', prototype: BackgroundTipsElement.prototype
+module.exports = document.registerElement 'fortune-background-tips', prototype: BackgroundTipsElement.prototype

@@ -1,18 +1,12 @@
 {
-  "name": "background-tips",
+  "name": "fortune-background-tips",
   "main": "./lib/background-tips",
-  "version": "0.26.0",
+  "version": "1.0.0",
   "private": true,
-  "description": "Displays tips about Atom in the background when there are no editors open.",
-  "repository": "https://github.com/atom/background-tips",
+  "description": "Displays output from the 'fortune' program in the background when there are no editors open.",
+  "repository": "https://github.com/BinaryMuse/fortune-background-tips",
   "license": "MIT",
   "engines": {
     "atom": ">0.42.0"
-  },
-  "dependencies": {
-    "underscore-plus": "1.x"
-  },
-  "devDependencies": {
-    "coffeelint": "^1.9.7"
   }
 }
