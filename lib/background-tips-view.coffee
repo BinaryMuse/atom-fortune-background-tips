@@ -87,7 +87,7 @@ class BackgroundTipsElement extends HTMLElement
     proc.onWillThrowError ({error, handle}) ->
       handle()
       if error.errno = 'ENOENT'
-        cb "Command '#{command}' not found; please check your forutne-background-tips settings"
+        cb "Command '#{command}' not found; please check your fortune-background-tips settings"
       else
         cb "Couldn't spawn #{command}: #{error.message}"
 
