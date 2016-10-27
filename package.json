@@ -1,7 +1,7 @@
 {
   "name": "fortune-background-tips",
   "main": "./lib/background-tips",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "private": true,
   "description": "Displays output from the 'fortune' program in the background when there are no editors open.",
   "repository": "https://github.com/BinaryMuse/atom-fortune-background-tips",
