@@ -16,9 +16,10 @@ class BackgroundTipsElement extends HTMLElement
     @index = -1
 
     @disposables = new CompositeDisposable
-    @disposables.add atom.workspace.onDidAddPane => @updateVisibility()
-    @disposables.add atom.workspace.onDidDestroyPane => @updateVisibility()
-    @disposables.add atom.workspace.onDidChangeActivePaneItem => @updateVisibility()
+    @workspaceCenter = atom.workspace.getCenter()
+    @disposables.add @workspaceCenter.onDidAddPane => @updateVisibility()
+    @disposables.add @workspaceCenter.onDidDestroyPane => @updateVisibility()
+    @disposables.add @workspaceCenter.onDidChangeActivePaneItem => @updateVisibility()
 
     @startTimeout = setTimeout((=> @start()), @StartDelay)
 
@@ -32,7 +33,7 @@ class BackgroundTipsElement extends HTMLElement
     @destroyed = true
 
   attach: =>
-    paneView = atom.views.getView(atom.workspace.getActivePane())
+    paneView = atom.views.getView(@workspaceCenter.getActivePane())
     top = paneView.querySelector('.item-views')?.offsetTop ? 0
     @style.top = top + 'px'
     paneView.appendChild(this)
@@ -47,7 +48,7 @@ class BackgroundTipsElement extends HTMLElement
       @stop()
 
   shouldBeAttached: ->
-    atom.workspace.getPanes().length is 1 and not atom.workspace.getActivePaneItem()?
+    @workspaceCenter.getPanes().length is 1 and not @workspaceCenter.getActivePaneItem()?
 
   start: =>
     return if not @shouldBeAttached() or @interval?
